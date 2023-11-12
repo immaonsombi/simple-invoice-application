@@ -1,26 +1,55 @@
 
 <script setup>
+import axios from "axios";
 import { onMounted, ref } from "vue";
 
 
 
 let allcustomers = ref([])
 let customer_id = ref([])
-
+let item = ref([])
+let listCart = ref
 const showModal = ref(false)
 
 const hideModal = ref(true)
+let listproducts = ref([])
+// mounted stuff
 
-
+onMounted(async () => {
+    indexForm()
+    getAllCustomers()
+    getProducts()
+})
+//function indexfrom 
+const indexForm = async () => {
+    let response = await axios.get('/api/create_invoice')
+    form.value = response.data.create_invoice
+}
 // function for customers
 const getAllCustomers = async () => {
     let response = await axios.get('/api/customers')
-    console.log('response', response)
-    allcustomers.value = response.data.customer
+    //console.log('response', response)
+    allcustomers.value = response.data.customers
 
 }
+//function to add  cart
+const addCart = (item) => {
+    const itemcart = {
+        id: item.id,
+        item_code: item.item_code,
+        description: item.description,
+        unit_price: item.unit_price,
+        quantity: item.quantity,
 
+    }
+    listCart.value.push(itemcart)
+    closeModal()
+}
 
+//function remove itme
+const removeItem = (i) => {
+    listCart.value.splice(i, 1)
+}
 
 // function to open model
 const openModel = () => {
@@ -29,6 +58,25 @@ const openModel = () => {
 //close modal
 const closeModal = () => {
     showModal.value = !hideModal.value
+}
+
+//function get products 
+const getProducts = async () => {
+    let response = await axios.get('/api/products')
+    // console.log('products', response)
+    listproducts.value = response.data.products
+}
+
+//function total
+const Subtotal = () => {
+    let total = 0
+    listCart.value.map((data) => {
+
+        total = total + (daata.quantity * data.unit_price)
+
+
+    })
+    return total
 }
 </script>
 
@@ -59,15 +107,16 @@ const closeModal = () => {
                     </div>
                     <div>
                         <p class="my-1">Date</p>
-                        <input id="date" placeholder="dd-mm-yyyy" type="date" class="input"> <!---->
+                        <input id="date" placeholder="dd-mm-yyyy" type="date" class="input" v-model="date">
                         <p class="my-1">Due Date</p>
-                        <input id="due_date" type="date" class="input">
+                        <input id="due_date" type="date" class="input" v-model="due_date">
                     </div>
                     <div>
+
                         <p class=" my-1">Numero</p>
-                        <input type="text" class="input">
-                        <p class=" my-1">Reference</p>
-                        <input type="text" class="input">
+                        <input type="text" class="input" v-model="number">
+                        <p class=" my-1">Reference(Optional)</p>
+                        <input type="text" class="input" v-model="reference">
                     </div>
                 </div>
                 <br><br>
@@ -82,19 +131,20 @@ const closeModal = () => {
                     </div>
 
                     <!-- item 1 -->
-                    <div class="table--items2">
-                        <p> </p>
+                    <div class="table--items2" v-for="(itemcart, i) in listCart" ::key="itemcart.id">
+                        <p>#{{ itemcart.item_code }}{{ itemcart.description }} </p>
                         <p>
-                            <input type="text" class="input">
+                            <input type="text" class="input" v-model="itemcart.unit_price">
                         </p>
                         <p>
-                            <input type="text" class="input">
+                            <input type="text" class="input" v-model="itemcart.quantity">
                         </p>
-                        <p>
-                            <!-- {{ itemcart.quantity }}*{{ itemcart.unit_price }} -->
+                        <p v-if="itemcart.quantity">
+                            {{ itemcart.quantity }}*{{ itemcart.unit_price }}
                         </p>
+                        <p v-else></p>
 
-                        <p style="color: red; font-size: 24px;cursor: pointer;">
+                        <p style="color: red; font-size: 24px;cursor: pointer;" @click="removeItem(i)">
                             &times;
                         </p>
 
@@ -107,7 +157,7 @@ const closeModal = () => {
                 <div class="table__footer">
                     <div class="document-footer">
                         <p>Terms and Conditions</p>
-                        <textarea cols="50" rows="7" class="textarea"></textarea>
+                        <textarea cols="50" rows="7" class="textarea" v-model="form.terms_and_conditions"></textarea>
                     </div>
                     <div>
                         <div class="table__footer--subtotal">
@@ -148,10 +198,19 @@ const closeModal = () => {
                 <h3 class="modal__title">Add Item</h3>
                 <hr><br>
                 <div class="modal__items">
-                    <select class="input my-1">
-                        <option value="None">None</option>
-                        <option value="None">LBC Padala</option>
-                    </select>
+                    <ul style="list-style: none;">
+
+
+                        <li>kenya</li>
+                        <li>kenya</li>
+                        <li v-for="(item, i) in listproducts" :key="item.id"
+                            style="display: grid-template-columns:30px 350px 15px; align-items:center; padding: bottom 5px;">
+                            <p>{{ i + l }}</p>
+                            <a href="#">{{ item.item_code }}{{ item.description }}</a>
+                            <button @click="addCart(item)"
+                                style="border: 1px solid#e0e0e0; width: 35px; height: 35px; cursor: pointer;"></button>
+                        </li>
+                    </ul>
                 </div>
                 <br>
                 <hr>
