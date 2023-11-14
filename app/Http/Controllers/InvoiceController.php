@@ -90,7 +90,7 @@ class InvoiceController extends Controller
 
         $invoice = Invoice::create($invoicedata);
 
-  /*       foreach (json_decode($iteminvoice) as $item) {
+        /*       foreach (json_decode($iteminvoice) as $item) {
             $itemdata['product_id'] = $item->id;
             $itemdata['invoice_id'] = $invoice->id;
             $itemdata['quantity'] = $item->quantity;
@@ -98,5 +98,13 @@ class InvoiceController extends Controller
 
             InvoiceItem::create($itemdata);
         } */
+    }
+
+    public function show_invoice($id)
+    {
+        $invoice = Invoice::with(['customer', 'invoice_items.product'])->find($id);
+        return response()->json([
+            'invoice' => $invoice
+        ], 200);
     }
 }
