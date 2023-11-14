@@ -2,6 +2,7 @@
 <script setup>
 import axios from "axios";
 import { onMounted, ref } from "vue";
+import { stringifyQuery } from "vue-router";
 
 
 
@@ -72,11 +73,44 @@ const Subtotal = () => {
     let total = 0
     listCart.value.map((data) => {
 
-        total = total + (daata.quantity * data.unit_price)
+        total = total + (data.quantity * data.unit_price)
 
 
     })
     return total
+    // function total
+    const Total = () => {
+        return Subtotal() - form.value.discount
+    }
+    const onSave = () => {
+        if (listCart.value.length >= 1) {
+            let subtotal = 0
+            subtotal = Subtotal()
+
+
+            let total = 0
+            total = Total()
+
+            const formData = new FormData()
+            formData.append('invoie_item', JSON.stringify(listCart.value))
+            formData.append('customer_id', customer_id.value)
+            formData.append('date', form.value.date)
+            formData.append('due_date', form.value.due_date)
+            formData.append('number', form.value.number)
+            formData.append('reference', form.value.reference)
+            formData.append('discount', form.value.discount)
+            formData.append('subtotal', subtotal)
+            formData.append('total', total)
+            formData.append('terms_and_conditions', form.value.terms_and_conditions)
+
+
+
+
+            axios.post("/api/add_invoice", formData)
+            listCart.value = []
+            router.push('/')
+        }
+    }
 }
 </script>
 
@@ -107,16 +141,22 @@ const Subtotal = () => {
                     </div>
                     <div>
                         <p class="my-1">Date</p>
-                        <input id="date" placeholder="dd-mm-yyyy" type="date" class="input" v-model="date">
+                        <input id="date" placeholder="dd-mm-yyyy" type="date" class="input" v-model="form.date">
+                        <!-- date -->
                         <p class="my-1">Due Date</p>
-                        <input id="due_date" type="date" class="input" v-model="due_date">
+                        <input id="due_date" type="date" class="input" v-model="form.due_date">
+
+                        <!-- due_date -->
                     </div>
                     <div>
 
                         <p class=" my-1">Numero</p>
-                        <input type="text" class="input" v-model="number">
+                        <input type="text" class="input" v-model="form.number">
+                        <!-- number -->
                         <p class=" my-1">Reference(Optional)</p>
-                        <input type="text" class="input" v-model="reference">
+                        <input type="text" class="input" v-model="form.reference">
+
+                        <!-- reference -->
                     </div>
                 </div>
                 <br><br>
@@ -157,20 +197,22 @@ const Subtotal = () => {
                 <div class="table__footer">
                     <div class="document-footer">
                         <p>Terms and Conditions</p>
-                        <textarea cols="50" rows="7" class="textarea" v-model="form.terms_and_conditions"></textarea>
+                        <textarea cols="50" rows="7" class="textarea" v-model="form"></textarea>
+                        <!-- .terms_and_conditions -->
                     </div>
                     <div>
                         <div class="table__footer--subtotal">
                             <p>Sub Total</p>
-                            <span>$ 1000</span>
+                            <span>$ {{ Subtotal() }}</span>
                         </div>
                         <div class="table__footer--discount">
                             <p>Discount</p>
-                            <input type="text" class="input">
+                            <input type="text" class="input" v-model="form">
+                            <!-- form.discount -->
                         </div>
                         <div class="table__footer--total">
                             <p>Grand Total</p>
-                            <span>$ 1200</span>
+                            <span>$ {{ Total() }}</span>
                         </div>
                     </div>
                 </div>
@@ -182,7 +224,7 @@ const Subtotal = () => {
 
                 </div>
                 <div>
-                    <a class="btn btn-secondary">
+                    <a class="btn btn-secondary" @click="onSave()">
                         Save
                     </a>
                 </div>
