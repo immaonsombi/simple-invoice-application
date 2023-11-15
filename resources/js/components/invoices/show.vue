@@ -1,7 +1,11 @@
 <script setup>
 import axios from "axios";
 import { onMounted, ref } from "vue"
-import router from "../../router";
+//import router from "../../router";
+//import router from "../../router/index.js";
+import { useRouter } from "vue-router"
+
+const router = useRouter()
 
 let form = ref({ id: '' })
 
@@ -20,7 +24,7 @@ onMounted(async () => {
 //function for fetching invoice
 
 const getInvoice = async () => {
-    let response = await axios.get('/api/show_invoice/${props.id}')
+    let response = await axios.get(`/api/show_invoice/${props.id}`)
     //console.log('form', response.data.invoice)
     form.value = response.data.invoice;
 }
@@ -31,6 +35,20 @@ const getInvoice = async () => {
 const print = () => {
     window.print()
     router.push('/').catch(() => { })
+}
+
+
+//funtion edit invoices
+const onEdit = (id) => {
+    router.push('/invoice/edit/' + id)
+
+
+}
+
+//function delete invoice
+const deleteInvoice = (id) => {
+    axios.get('/api/delete_invoice/' + id)
+    router.push('/')
 }
 </script>
 
@@ -65,7 +83,7 @@ const print = () => {
                         </li>
                         <li>
                             <!-- Select Btn Option -->
-                            <button class="selectBtnFlat">
+                            <button class="selectBtnFlat" @click="onEdit(form.id)">
                                 <i class=" fas fa-reply"></i>
                                 Edit
                             </button>
@@ -73,7 +91,7 @@ const print = () => {
                         </li>
                         <li>
                             <!-- Select Btn Option -->
-                            <button class="selectBtnFlat ">
+                            <button class="selectBtnFlat " @click="deleteInvoice(form.id)">
                                 <i class=" fas fa-pencil-alt"></i>
                                 Delete
                             </button>
